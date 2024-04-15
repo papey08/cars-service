@@ -9,15 +9,15 @@ import (
 	"strconv"
 )
 
-// @Summary Получение информации об автомобиле по id
-// @Description Возвращает информацию об автомобиле и его владельце, если автомобиль с указанным id существует
-// @Produce json
-// @Param id path int true "id автомобиля"
-// @Success 200 {object} carResponse "Успешное получение информации"
-// @Failure 400 {object} carResponse "Неверный формат входных данных"
-// @Failure 404 {object} carResponse "Автомобиль с указанным id не найден"
-// @Failure 500 {object} carResponse "Ошибка на стороне сервера"
-// @Router /cars/{id} [get]
+// @Summary		Получение информации об автомобиле по id
+// @Description	Возвращает информацию об автомобиле и его владельце, если автомобиль с указанным id существует
+// @Produce		json
+// @Param			id	path		int			true	"id автомобиля"
+// @Success		200	{object}	carResponse	"Успешное получение информации"
+// @Failure		400	{object}	carResponse	"Неверный формат входных данных"
+// @Failure		404	{object}	carResponse	"Автомобиль с указанным id не найден"
+// @Failure		500	{object}	carResponse	"Ошибка на стороне сервера"
+// @Router			/cars/{id} [get]
 func handleGetCarById(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -45,21 +45,21 @@ func handleGetCarById(a app.App) gin.HandlerFunc {
 	}
 }
 
-// @Summary Получение списка автомобилей
-// @Description Возвращает список автомобилей, поддерживаются фильтрация и пагинация
-// @Produce json
-// @Param limit query int true ""
-// @Param offset query int true ""
-// @Param regNum query string false "Регистрационный номер"
-// @Param mark query string false "Марка"
-// @Param model query string false "Модель"
-// @Param ownerName string false "Имя владельца"
-// @Param ownerSurname string false "Фамилия владельца"
-// @Param ownerPatronymic string false "Отчество владельца"
-// @Success 200 {object} carResponse "Успешное получение информации"
-// @Failure 400 {object} carResponse "Неверный формат входных данных"
-// @Failure 500 {object} carResponse "Ошибка на стороне сервера"
-// @Router /cars [get]
+// @Summary		Получение списка автомобилей
+// @Description	Возвращает список автомобилей, поддерживаются фильтрация и пагинация
+// @Produce		json
+// @Param			limit			query		int			true	"limit"
+// @Param			offset			query		int			true	"offset"
+// @Param			regNum			query		string		false	"Регистрационный номер"
+// @Param			mark			query		string		false	"Марка"
+// @Param			model			query		string		false	"Модель"
+// @Param			ownerName		query string		false		"Имя владельца"
+// @Param			ownerSurname	query string		false		"Фамилия владельца"
+// @Param			ownerPatronymic	query string		false		"Отчество владельца"
+// @Success		200				{object}	carResponse	"Успешное получение информации"
+// @Failure		400				{object}	carResponse	"Неверный формат входных данных"
+// @Failure		500				{object}	carResponse	"Ошибка на стороне сервера"
+// @Router			/cars [get]
 func handleGetCars(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit, err := strconv.Atoi(c.Query("limit"))
@@ -106,16 +106,16 @@ func handleGetCars(a app.App) gin.HandlerFunc {
 	}
 }
 
-// @Summary Добавление новых автомобилей
-// @Description Получает на вход номера автомобилей, выполняет запрос во внешний API для получения недостающих данных и добавляет информацию о новых автомобилях
-// @Accept json
-// @Produce json
-// @Param input body addCarsRequest true "Регистрационные номера"
-// @Success 200 {object} carsResponse "Успешное добавление информации"
-// @Failure 400 {object} carsResponse "Неверный формат входных данных"
-// @Failure 409 {object} carsResponse "Попытка добавления существующего номера"
-// @Failure 500 {object} carsResponse "Ошибка на стороне сервера"
-// @Router /cars [post]
+// @Summary		Добавление новых автомобилей
+// @Description	Получает на вход номера автомобилей, выполняет запрос во внешний API для получения недостающих данных и добавляет информацию о новых автомобилях
+// @Accept			json
+// @Produce		json
+// @Param			input	body		addCarsRequest	true	"Регистрационные номера"
+// @Success		200		{object}	carsResponse	"Успешное добавление информации"
+// @Failure		400		{object}	carsResponse	"Неверный формат входных данных"
+// @Failure		409		{object}	carsResponse	"Попытка добавления существующего номера"
+// @Failure		500		{object}	carsResponse	"Ошибка на стороне сервера"
+// @Router			/cars [post]
 func handleAddCars(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req addCarsRequest
@@ -143,18 +143,18 @@ func handleAddCars(a app.App) gin.HandlerFunc {
 	}
 }
 
-// @Summary Изменение информации об автомобиле
-// @Description Изменяет информацию о существующем автомобиле
-// @Accept json
-// @Produce json
-// @Param id path int true "id автомобиля"
-// @Param input body carData true "Новая информация об автомобиле"
-// @Success 200 {object} carResponse "Успешное изменение информации"
-// @Failure 400 {object} carResponse "Неверный формат входных данных"
-// @Failure 404 {object} carResponse "Автомобиль с указанным id не найден"
-// @Failure 409 {object} carResponse "Попытка добавления существующего номера"
-// @Failure 500 {object} carResponse "Ошибка на стороне сервера"
-// @Router /cars/:id [put]
+// @Summary		Изменение информации об автомобиле
+// @Description	Изменяет информацию о существующем автомобиле
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int			true	"id автомобиля"
+// @Param			input	body		carData		true	"Новая информация об автомобиле"
+// @Success		200		{object}	carResponse	"Успешное изменение информации"
+// @Failure		400		{object}	carResponse	"Неверный формат входных данных"
+// @Failure		404		{object}	carResponse	"Автомобиль с указанным id не найден"
+// @Failure		409		{object}	carResponse	"Попытка добавления существующего номера"
+// @Failure		500		{object}	carResponse	"Ошибка на стороне сервера"
+// @Router			/cars/{id} [put]
 func handleUpdateCar(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -193,21 +193,23 @@ func handleUpdateCar(a app.App) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse(model.ErrDatabaseError))
 		case errors.Is(err, model.ErrDuplicateRegNum):
 			c.AbortWithStatusJSON(http.StatusConflict, errorResponse(model.ErrDuplicateRegNum))
+		case errors.Is(err, model.ErrValidation):
+			c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse(model.ErrValidation))
 		default:
 			c.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse(model.ErrServiceError))
 		}
 	}
 }
 
-// @Summary Удаление информации об автомобиле
-// @Description Удаляет информацию об автомобиле по его id
-// @Produce json
-// @Param id path int true "id автомобиля"
-// @Success 200 {object} carResponse "Успешное удаление информации"
-// @Failure 400 {object} carResponse "Неверный формат входных данных"
-// @Failure 404 {object} carResponse "Автомобиль с указанным id не найден"
-// @Failure 500 {object} carResponse "Ошибка на стороне сервера"
-// @Router /cars/:id [delete]
+// @Summary		Удаление информации об автомобиле
+// @Description	Удаляет информацию об автомобиле по его id
+// @Produce		json
+// @Param			id	path		int			true	"id автомобиля"
+// @Success		200	{object}	carResponse	"Успешное удаление информации"
+// @Failure		400	{object}	carResponse	"Неверный формат входных данных"
+// @Failure		404	{object}	carResponse	"Автомобиль с указанным id не найден"
+// @Failure		500	{object}	carResponse	"Ошибка на стороне сервера"
+// @Router			/cars/{id} [delete]
 func handleDeleteCar(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)

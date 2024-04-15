@@ -1,0 +1,241 @@
+basePath: /api/v1
+definitions:
+  httpserver.addCarsRequest:
+    properties:
+      regNums:
+        items:
+          type: string
+        type: array
+    type: object
+  httpserver.carData:
+    properties:
+      id:
+        type: integer
+      mark:
+        type: string
+      model:
+        type: string
+      owner:
+        $ref: '#/definitions/httpserver.ownerData'
+      regNum:
+        type: string
+      year:
+        type: integer
+    type: object
+  httpserver.carResponse:
+    properties:
+      data:
+        $ref: '#/definitions/httpserver.carData'
+      error:
+        type: string
+    type: object
+  httpserver.carsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/httpserver.carData'
+        type: array
+      error:
+        type: string
+    type: object
+  httpserver.ownerData:
+    properties:
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Swagger-документация к API каталога автомобилей
+  title: cars-service API
+  version: "1.0"
+paths:
+  /cars:
+    get:
+      description: Возвращает список автомобилей, поддерживаются фильтрация и пагинация
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Регистрационный номер
+        in: query
+        name: regNum
+        type: string
+      - description: Марка
+        in: query
+        name: mark
+        type: string
+      - description: Модель
+        in: query
+        name: model
+        type: string
+      - description: Имя владельца
+        in: query
+        name: ownerName
+        type: string
+      - description: Фамилия владельца
+        in: query
+        name: ownerSurname
+        type: string
+      - description: Отчество владельца
+        in: query
+        name: ownerPatronymic
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное получение информации
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+      summary: Получение списка автомобилей
+    post:
+      consumes:
+      - application/json
+      description: Получает на вход номера автомобилей, выполняет запрос во внешний
+        API для получения недостающих данных и добавляет информацию о новых автомобилях
+      parameters:
+      - description: Регистрационные номера
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/httpserver.addCarsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное добавление информации
+          schema:
+            $ref: '#/definitions/httpserver.carsResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            $ref: '#/definitions/httpserver.carsResponse'
+        "409":
+          description: Попытка добавления существующего номера
+          schema:
+            $ref: '#/definitions/httpserver.carsResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/httpserver.carsResponse'
+      summary: Добавление новых автомобилей
+  /cars/{id}:
+    delete:
+      description: Удаляет информацию об автомобиле по его id
+      parameters:
+      - description: id автомобиля
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное удаление информации
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "404":
+          description: Автомобиль с указанным id не найден
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+      summary: Удаление информации об автомобиле
+    get:
+      description: Возвращает информацию об автомобиле и его владельце, если автомобиль
+        с указанным id существует
+      parameters:
+      - description: id автомобиля
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное получение информации
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "404":
+          description: Автомобиль с указанным id не найден
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+      summary: Получение информации об автомобиле по id
+    put:
+      consumes:
+      - application/json
+      description: Изменяет информацию о существующем автомобиле
+      parameters:
+      - description: id автомобиля
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новая информация об автомобиле
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/httpserver.carData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное изменение информации
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "404":
+          description: Автомобиль с указанным id не найден
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "409":
+          description: Попытка добавления существующего номера
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/httpserver.carResponse'
+      summary: Изменение информации об автомобиле
+swagger: "2.0"

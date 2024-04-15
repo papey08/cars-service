@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	_ "cars-service/docs"
 	"cars-service/internal/app"
 	"cars-service/pkg/logger"
 	"github.com/gin-gonic/gin"
