@@ -12,7 +12,7 @@ type repoImpl struct {
 	*pgxpool.Pool
 }
 
-func (r *repoImpl) GetCarById(ctx context.Context, id string) (model.Car, error) {
+func (r *repoImpl) GetCarById(ctx context.Context, id uint64) (model.Car, error) {
 	row := r.QueryRow(ctx, getCarByIdQuery, id)
 	var car model.Car
 	if err := row.Scan(
