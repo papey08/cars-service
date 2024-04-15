@@ -10,7 +10,7 @@ type Api interface {
 	GetInfo(ctx context.Context, regNum string) (model.Car, error)
 }
 
-func NewApi(url string) Api {
+func New(url string) Api {
 	return &apiImpl{
 		url:    url,
 		Client: http.Client{},

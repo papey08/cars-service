@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -89,13 +90,20 @@ func (r *repoImpl) AddCar(ctx context.Context, car model.Car) (model.Car, error)
 		return model.Car{}, err
 	}
 
-	// TODO добавить обработку ошибки добавления дубликата номера
+	var pgErr *pgconn.PgError
 	if err = r.QueryRow(ctx, insertCarQuery,
 		car.RegNum,
 		modelId,
 		car.Year,
 		ownerId,
-	).Scan(&car.Id); err != nil {
+	).Scan(&car.Id); errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case "23505":
+			return model.Car{}, model.ErrDuplicateRegNum
+		default:
+			return model.Car{}, errors.Join(model.ErrDatabaseError, err)
+		}
+	} else if err != nil {
 		return model.Car{}, errors.Join(model.ErrDatabaseError, err)
 	}
 	return car, nil
@@ -115,14 +123,21 @@ func (r *repoImpl) UpdateCar(ctx context.Context, id uint64, car model.Car) (mod
 		return model.Car{}, err
 	}
 
-	// TODO сюда тоже добавить
+	var pgErr *pgconn.PgError
 	if e, err := r.Exec(ctx, updateCarQuery,
 		id,
 		car.RegNum,
 		modelId,
 		car.Year,
 		ownerId,
-	); err != nil {
+	); errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case "23505":
+			return model.Car{}, model.ErrDuplicateRegNum
+		default:
+			return model.Car{}, errors.Join(model.ErrDatabaseError, err)
+		}
+	} else if err != nil {
 		return model.Car{}, errors.Join(model.ErrDatabaseError, err)
 	} else if e.RowsAffected() == 0 {
 		return model.Car{}, model.ErrCarNotFound
@@ -163,10 +178,10 @@ func (r *repoImpl) getMarkId(ctx context.Context, mark string) (uint64, error) {
 	return id, nil
 }
 
-func (r *repoImpl) getModelId(ctx context.Context, model string, markId uint64) (uint64, error) {
+func (r *repoImpl) getModelId(ctx context.Context, mdl string, markId uint64) (uint64, error) {
 	var id uint64
 	if err := r.QueryRow(ctx, getModelIdQuery,
-		model,
+		mdl,
 		markId,
 	).Scan(&id); err != nil {
 		return 0, errors.Join(model.ErrDatabaseError, err)
@@ -218,10 +233,10 @@ const (
 	getOwnerIdQuery = `
 		WITH inserted_or_existing AS (
 			INSERT INTO "owners" ("name", "surname", "patronymic")
-			SELECT $1, $2, $3
+			SELECT CAST($1 AS VARCHAR), CAST($2 AS VARCHAR), CAST($3 AS VARCHAR)
 			WHERE NOT EXISTS (
 				SELECT 1 FROM "owners"
-				WHERE "name" = $1 AND "surname" = $2 AND "patronymic" = $3
+				WHERE "name" = CAST($1 AS VARCHAR) AND "surname" = CAST($2 AS VARCHAR) AND "patronymic" = CAST($3 AS VARCHAR)
 			)
 			RETURNING "id"
 		)
@@ -233,10 +248,10 @@ const (
 	getMarkIdQuery = `
 		WITH inserted_or_existing AS (
 			INSERT INTO "marks" ("name")
-			SELECT $1
+			SELECT CAST($1 AS VARCHAR)
 			WHERE NOT EXISTS (
 				SELECT 1 FROM "marks"
-				WHERE "name" = $1
+				WHERE "name" = CAST($1 AS VARCHAR)
 			)
 			RETURNING "id"
 		)
@@ -248,10 +263,10 @@ const (
 	getModelIdQuery = `
 		WITH inserted_or_existing AS (
 			INSERT INTO "models" ("name", "mark_id")
-			SELECT $1, $2
+			SELECT CAST($1 AS VARCHAR), $2
 			WHERE NOT EXISTS (
 				SELECT 1 FROM "models"
-				WHERE "name" = $1 AND "mark_id" = $2
+				WHERE "name" = CAST($1 AS VARCHAR) AND "mark_id" = $2
 			)
 			RETURNING "id"
 		)

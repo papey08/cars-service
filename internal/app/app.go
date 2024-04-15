@@ -9,6 +9,7 @@ import (
 	"errors"
 	"golang.org/x/sync/errgroup"
 	"sync"
+	"time"
 	"unicode"
 )
 
@@ -20,10 +21,12 @@ type appImpl struct {
 
 func (a *appImpl) GetCarById(ctx context.Context, id uint64) (model.Car, error) {
 	var err error
-	defer a.writeLogs(logger.Fields{
-		"Method": "GetCarById",
-		"CarId":  id,
-	}, err)
+	defer func() {
+		a.writeLogs(logger.Fields{
+			"Method": "GetCarById",
+			"CarId":  id,
+		}, err)
+	}()
 
 	car, err := a.Repo.GetCarById(ctx, id)
 	return car, err
@@ -31,9 +34,11 @@ func (a *appImpl) GetCarById(ctx context.Context, id uint64) (model.Car, error) 
 
 func (a *appImpl) GetCars(ctx context.Context, filter model.Filter) ([]model.Car, error) {
 	var err error
-	defer a.writeLogs(logger.Fields{
-		"Method": "GetCars",
-	}, err)
+	defer func() {
+		a.writeLogs(logger.Fields{
+			"Method": "GetCars",
+		}, err)
+	}()
 
 	cars, err := a.Repo.GetCars(ctx, filter)
 	return cars, err
@@ -41,9 +46,11 @@ func (a *appImpl) GetCars(ctx context.Context, filter model.Filter) ([]model.Car
 
 func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, error) {
 	var err error
-	defer a.writeLogs(logger.Fields{
-		"Method": "AddCars",
-	}, err)
+	defer func() {
+		a.writeLogs(logger.Fields{
+			"Method": "AddCars",
+		}, err)
+	}()
 
 	cars := make(map[string]model.Car, len(regNums))
 	var mu sync.Mutex
@@ -51,9 +58,9 @@ func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, e
 
 	for _, regNum := range regNums {
 		wg.Add(1)
-		if !isValidRegNum(regNum) {
+		if !isValidRegNum([]rune(regNum)) {
 			a.Logger.Debug(logger.Fields{
-				"Method": "GetInfo",
+				"Method": "AddCars",
 				"RegNum": regNum,
 			}, model.ErrValidation.Error())
 			continue
@@ -107,11 +114,13 @@ func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, e
 
 func (a *appImpl) UpdateCar(ctx context.Context, id uint64, car model.Car) (model.Car, error) {
 	var err error
-	defer a.writeLogs(logger.Fields{
-		"Method": "GetCars",
-		"CarId":  id,
-	}, err)
-	if !isValidRegNum(car.RegNum) {
+	defer func() {
+		a.writeLogs(logger.Fields{
+			"Method": "UpdateCar",
+			"CarId":  id,
+		}, err)
+	}()
+	if !isValidRegNum([]rune(car.RegNum)) || !isValidYear(car.Year) {
 		err = model.ErrValidation
 		return model.Car{}, err
 	}
@@ -122,31 +131,37 @@ func (a *appImpl) UpdateCar(ctx context.Context, id uint64, car model.Car) (mode
 
 func (a *appImpl) DeleteCar(ctx context.Context, id uint64) error {
 	var err error
-	defer a.writeLogs(logger.Fields{
-		"Method": "DeleteCar",
-		"CarId":  id,
-	}, err)
+	defer func() {
+		a.writeLogs(logger.Fields{
+			"Method": "DeleteCar",
+			"CarId":  id,
+		}, err)
+	}()
 
 	err = a.Repo.DeleteCar(ctx, id)
 	return err
 }
 
-func isValidRegNum(regNum string) bool {
-	if len(regNum) != 9 || len(regNum) != 8 {
+func isValidRegNum(regNum []rune) bool {
+	if len(regNum) != 9 && len(regNum) != 8 {
 		return false
 	}
-	if len(regNum) == 9 && !unicode.IsDigit(rune(regNum[8])) {
+	if len(regNum) == 9 && !unicode.IsDigit(regNum[8]) {
 		return false
 	}
 
-	return unicode.IsLetter(rune(regNum[0])) &&
-		unicode.IsDigit(rune(regNum[1])) &&
-		unicode.IsDigit(rune(regNum[2])) &&
-		unicode.IsDigit(rune(regNum[3])) &&
-		unicode.IsLetter(rune(regNum[4])) &&
-		unicode.IsLetter(rune(regNum[5])) &&
-		unicode.IsDigit(rune(regNum[6])) &&
-		unicode.IsDigit(rune(regNum[7]))
+	return unicode.IsLetter(regNum[0]) &&
+		unicode.IsDigit(regNum[1]) &&
+		unicode.IsDigit(regNum[2]) &&
+		unicode.IsDigit(regNum[3]) &&
+		unicode.IsLetter(regNum[4]) &&
+		unicode.IsLetter(regNum[5]) &&
+		unicode.IsDigit(regNum[6]) &&
+		unicode.IsDigit(regNum[7])
+}
+
+func isValidYear(year int) bool {
+	return year >= 1900 && year <= time.Now().UTC().Year()
 }
 
 func (a *appImpl) writeLogs(fields logger.Fields, err error) {
