@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  postgres-db:
+    image: postgres:15.5
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: cars-db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./migrations/:/docker-entrypoint-initdb.d/
+      - cars-data:/var/lib/postgresql/data
+
+  cars-service-app:
+    build: ./
+    command: ./cars-service-app --docker
+    container_name: cars-service-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+
+volumes:
+  cars-data:
