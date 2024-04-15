@@ -6,7 +6,7 @@ import (
 )
 
 type App interface {
-	GetCarById(ctx context.Context, id string) (model.Car, error)
+	GetCarById(ctx context.Context, id uint64) (model.Car, error)
 	GetCars(ctx context.Context, filter model.Filter) ([]model.Car, error)
 
 	AddCars(ctx context.Context, regNums []string) ([]model.Car, error)

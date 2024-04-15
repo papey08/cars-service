@@ -9,6 +9,7 @@ import (
 	"errors"
 	"golang.org/x/sync/errgroup"
 	"sync"
+	"unicode"
 )
 
 type appImpl struct {
@@ -17,7 +18,7 @@ type appImpl struct {
 	repo.Repo
 }
 
-func (a *appImpl) GetCarById(ctx context.Context, id string) (model.Car, error) {
+func (a *appImpl) GetCarById(ctx context.Context, id uint64) (model.Car, error) {
 	var err error
 	defer a.writeLogs(logger.Fields{
 		"Method": "GetCarById",
@@ -50,6 +51,13 @@ func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, e
 
 	for _, regNum := range regNums {
 		wg.Add(1)
+		if !isValidRegNum(regNum) {
+			a.Logger.Debug(logger.Fields{
+				"Method": "GetInfo",
+				"RegNum": regNum,
+			}, model.ErrValidation.Error())
+			continue
+		}
 		go func(regNum string) {
 			defer wg.Done()
 			car, err := a.Api.GetInfo(ctx, regNum)
@@ -103,6 +111,10 @@ func (a *appImpl) UpdateCar(ctx context.Context, id uint64, car model.Car) (mode
 		"Method": "GetCars",
 		"CarId":  id,
 	}, err)
+	if !isValidRegNum(car.RegNum) {
+		err = model.ErrValidation
+		return model.Car{}, err
+	}
 
 	car, err = a.Repo.UpdateCar(ctx, id, car)
 	return car, err
@@ -117,6 +129,24 @@ func (a *appImpl) DeleteCar(ctx context.Context, id uint64) error {
 
 	err = a.Repo.DeleteCar(ctx, id)
 	return err
+}
+
+func isValidRegNum(regNum string) bool {
+	if len(regNum) != 9 || len(regNum) != 8 {
+		return false
+	}
+	if len(regNum) == 9 && !unicode.IsDigit(rune(regNum[8])) {
+		return false
+	}
+
+	return unicode.IsLetter(rune(regNum[0])) &&
+		unicode.IsDigit(rune(regNum[1])) &&
+		unicode.IsDigit(rune(regNum[2])) &&
+		unicode.IsDigit(rune(regNum[3])) &&
+		unicode.IsLetter(rune(regNum[4])) &&
+		unicode.IsLetter(rune(regNum[5])) &&
+		unicode.IsDigit(rune(regNum[6])) &&
+		unicode.IsDigit(rune(regNum[7]))
 }
 
 func (a *appImpl) writeLogs(fields logger.Fields, err error) {
