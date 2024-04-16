@@ -9,6 +9,7 @@ import (
 	"net/http"
 )
 
+// New creates HTTP server with all needed routes
 func New(addr string, a app.App, logs logger.Logger) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()

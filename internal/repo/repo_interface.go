@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Repo is an interface of the database
 type Repo interface {
 	GetCarById(ctx context.Context, id uint64) (model.Car, error)
 	GetCars(ctx context.Context, filter model.Filter) ([]model.Car, error)
@@ -15,6 +16,7 @@ type Repo interface {
 	DeleteCar(ctx context.Context, id uint64) error
 }
 
+// New creates Repo implementation
 func New(pool *pgxpool.Pool) Repo {
 	return &repoImpl{
 		Pool: pool,

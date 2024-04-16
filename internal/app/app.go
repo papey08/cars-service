@@ -56,6 +56,7 @@ func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, e
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
+	// getting data of all regNums
 	for _, regNum := range regNums {
 		wg.Add(1)
 		if !isValidRegNum([]rune(regNum)) {
@@ -90,6 +91,7 @@ func (a *appImpl) AddCars(ctx context.Context, regNums []string) ([]model.Car, e
 
 	res := make([]model.Car, 0, len(cars))
 
+	// adding all new cars to the database
 	var gr errgroup.Group
 	for _, car := range cars {
 		car := car

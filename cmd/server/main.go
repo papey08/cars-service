@@ -87,6 +87,7 @@ func main() {
 	}()
 	logs.Info(nil, "server started")
 
+	// preparing graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT)

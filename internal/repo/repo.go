@@ -156,6 +156,7 @@ func (r *repoImpl) DeleteCar(ctx context.Context, id uint64) error {
 	return nil
 }
 
+// getOwnerId returns id of existing owner in database or inserts new owner and returns its id
 func (r *repoImpl) getOwnerId(ctx context.Context, owner model.Owner) (uint64, error) {
 	var id uint64
 	if err := r.QueryRow(ctx, getOwnerIdQuery,
@@ -168,6 +169,7 @@ func (r *repoImpl) getOwnerId(ctx context.Context, owner model.Owner) (uint64, e
 	return id, nil
 }
 
+// getMarkId returns id of existing mark in database or inserts new mark and returns its id
 func (r *repoImpl) getMarkId(ctx context.Context, mark string) (uint64, error) {
 	var id uint64
 	if err := r.QueryRow(ctx, getMarkIdQuery,
@@ -178,6 +180,7 @@ func (r *repoImpl) getMarkId(ctx context.Context, mark string) (uint64, error) {
 	return id, nil
 }
 
+// getModelId returns id of existing model in database or inserts new model and returns its id
 func (r *repoImpl) getModelId(ctx context.Context, mdl string, markId uint64) (uint64, error) {
 	var id uint64
 	if err := r.QueryRow(ctx, getModelIdQuery,

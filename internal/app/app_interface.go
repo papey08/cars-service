@@ -8,6 +8,7 @@ import (
 	"context"
 )
 
+// App is an interface for managing cars data
 type App interface {
 	GetCarById(ctx context.Context, id uint64) (model.Car, error)
 	GetCars(ctx context.Context, filter model.Filter) ([]model.Car, error)
@@ -17,6 +18,7 @@ type App interface {
 	DeleteCar(ctx context.Context, id uint64) error
 }
 
+// New creates App implementation
 func New(r repo.Repo, cli api.Api, logs logger.Logger) App {
 	return &appImpl{
 		Logger: logs,

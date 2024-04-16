@@ -56,6 +56,7 @@ func (a *apiImpl) GetInfo(ctx context.Context, regNum string) (model.Car, error)
 
 }
 
+// carInfo is a struct for parsing data from response body
 type carInfo struct {
 	RegNum string    `json:"regNum"`
 	Mark   string    `json:"mark"`
@@ -64,6 +65,7 @@ type carInfo struct {
 	Owner  ownerInfo `json:"owner"`
 }
 
+// ownerInfo is a struct for parsing data from response body
 type ownerInfo struct {
 	Name       string `json:"name"`
 	Surname    string `json:"surname"`
